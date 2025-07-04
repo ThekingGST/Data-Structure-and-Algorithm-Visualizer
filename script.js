@@ -117,8 +117,58 @@ function initHeroAnimation() {
     animate();
 }
 
+// Button state management
+function updateVisualizationButtons() {
+    const startBtn = document.querySelector('[onclick="startVisualization()"]');
+    const pauseBtn = document.querySelector('[onclick="pauseVisualization()"]');
+    const resetBtn = document.querySelector('[onclick="resetVisualization()"]');
+    
+    if (visualizationState.isRunning) {
+        // Disable start button when running
+        if (startBtn) {
+            startBtn.disabled = true;
+            startBtn.classList.add('btn-disabled');
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+        }
+        
+        // Enable pause and reset buttons
+        if (pauseBtn) {
+            pauseBtn.disabled = false;
+            pauseBtn.classList.remove('btn-disabled');
+        }
+        if (resetBtn) {
+            resetBtn.disabled = false;
+            resetBtn.classList.remove('btn-disabled');
+        }
+    } else {
+        // Enable start button when not running
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.remove('btn-disabled');
+            startBtn.innerHTML = '<i class="fas fa-play"></i> Start';
+        }
+        
+        // Reset pause button text
+        if (pauseBtn) {
+            pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            pauseBtn.disabled = false;
+            pauseBtn.classList.remove('btn-disabled');
+        }
+        
+        if (resetBtn) {
+            resetBtn.disabled = false;
+            resetBtn.classList.remove('btn-disabled');
+        }
+    }
+}
+
 // Visualization functions
 function startVisualization() {
+    // Prevent starting if already running
+    if (visualizationState.isRunning) {
+        return;
+    }
+    
     const algorithm = document.getElementById('algorithmSelect').value;
     const inputData = document.getElementById('inputData').value;
     const speed = document.getElementById('speedControl').value;
@@ -142,6 +192,7 @@ function startVisualization() {
     };
     
     updateVisualizationInfo();
+    updateVisualizationButtons();
     
     switch (algorithm) {
         case 'bubble-sort':
@@ -186,6 +237,8 @@ function startVisualization() {
 }
 
 function pauseVisualization() {
+    if (!visualizationState.isRunning) return;
+    
     visualizationState.isPaused = !visualizationState.isPaused;
     const pauseBtn = document.querySelector('[onclick="pauseVisualization()"]');
     if (pauseBtn) {
@@ -202,12 +255,8 @@ function resetVisualization() {
     visualizationState.swaps = 0;
     
     updateVisualizationInfo();
+    updateVisualizationButtons();
     clearVisualizationCanvas();
-    
-    const pauseBtn = document.querySelector('[onclick="pauseVisualization()"]');
-    if (pauseBtn) {
-        pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-    }
 }
 
 function updateVisualizationInfo() {
@@ -413,6 +462,13 @@ function drawQueue(queue, highlightIndex = -1) {
     }
 }
 
+// Helper function to mark visualization as completed
+function markVisualizationComplete() {
+    visualizationState.isRunning = false;
+    visualizationState.isPaused = false;
+    updateVisualizationButtons();
+}
+
 // Sorting algorithms
 async function animateBubbleSort(originalData) {
     const data = [...originalData];
@@ -448,7 +504,7 @@ async function animateBubbleSort(originalData) {
     
     // Final draw without highlights
     drawBars(data);
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateInsertionSort(originalData) {
@@ -489,7 +545,7 @@ async function animateInsertionSort(originalData) {
     }
     
     drawBars(data);
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateQuickSort(originalData) {
@@ -541,7 +597,7 @@ async function animateQuickSort(originalData) {
     
     await quickSortHelper(data, 0, data.length - 1);
     drawBars(data);
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateMergeSort(originalData) {
@@ -614,7 +670,7 @@ async function animateMergeSort(originalData) {
     
     await mergeSortHelper(data, 0, data.length - 1);
     drawBars(data);
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 // Search algorithms
@@ -660,7 +716,7 @@ async function animateBinarySearch(originalData) {
         }
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateLinearSearch(originalData) {
@@ -685,7 +741,7 @@ async function animateLinearSearch(originalData) {
         await new Promise(resolve => setTimeout(resolve, 1000 / visualizationState.speed));
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 // Graph algorithms
@@ -736,7 +792,7 @@ async function animateBFS() {
         await new Promise(resolve => setTimeout(resolve, 1500 / visualizationState.speed));
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateDFS() {
@@ -781,7 +837,7 @@ async function animateDFS() {
     }
     
     await dfsHelper(0);
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateDijkstra() {
@@ -844,7 +900,7 @@ async function animateDijkstra() {
         await new Promise(resolve => setTimeout(resolve, 1500 / visualizationState.speed));
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 // Data structure operations
@@ -877,7 +933,7 @@ async function animateStackOperations() {
         await new Promise(resolve => setTimeout(resolve, 1500 / visualizationState.speed));
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateQueueOperations() {
@@ -909,7 +965,7 @@ async function animateQueueOperations() {
         await new Promise(resolve => setTimeout(resolve, 1500 / visualizationState.speed));
     }
     
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 async function animateBinaryTreeTraversal() {
@@ -1001,7 +1057,7 @@ async function animateBinaryTreeTraversal() {
     }
     
     drawTree();
-    visualizationState.isRunning = false;
+    markVisualizationComplete();
 }
 
 // Code examples for different languages
@@ -1369,6 +1425,9 @@ const algorithmComplexities = {
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
     initHeroAnimation();
+    
+    // Initialize button states
+    updateVisualizationButtons();
     
     // Algorithm selector change
     const algorithmSelect = document.getElementById('algorithmSelect');
