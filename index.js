@@ -23,21 +23,37 @@ function loadTheme() {
     themeIcon.className = currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
 }
 
-// Navigation
+// Navigation functions
 function navigateToSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.scrollIntoView({ behavior: 'smooth' });
-        
-        // Update active nav link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        
-        const activeLink = document.querySelector(`[href="#${sectionId}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
+        updateActiveNavLink(`#${sectionId}`);
+    }
+}
+
+function updateActiveNavLink(activeHref) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    const activeLink = document.querySelector(`[href="${activeHref}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
+function handleNavigation(href) {
+    if (href.startsWith('#')) {
+        // Internal section navigation
+        const sectionId = href.substring(1);
+        navigateToSection(sectionId);
+    } else if (href.includes('#')) {
+        // Cross-page navigation with section
+        window.location.href = href;
+    } else {
+        // Regular page navigation
+        window.location.href = href;
     }
 }
 
@@ -101,46 +117,72 @@ function initHeroAnimation() {
     animate();
 }
 
+// Intersection Observer for scroll-based nav updates
+function initScrollObserver() {
+    const sections = document.querySelectorAll('section[id]');
+    
+    const observerOptions = {
+        threshold: 0.3,
+        rootMargin: '-100px 0px -50% 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const sectionId = entry.target.id;
+                if (sectionId === 'home') {
+                    updateActiveNavLink('index.html');
+                } else {
+                    updateActiveNavLink(`#${sectionId}`);
+                }
+            }
+        });
+    }, observerOptions);
+    
+    sections.forEach(section => observer.observe(section));
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
     initHeroAnimation();
+    initScrollObserver();
     
-    // Smooth scrolling for navigation
+    // Handle navigation clicks
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
+            e.preventDefault();
             const href = this.getAttribute('href');
-            
-            // If it's an internal link (starts with #), handle smooth scrolling
-            if (href.startsWith('#')) {
-                e.preventDefault();
-                const targetId = href.substring(1);
-                navigateToSection(targetId);
-            }
-            // If it's an external link or page, let it navigate normally
+            handleNavigation(href);
         });
     });
+    
+    // Set active nav link based on current page
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    if (currentPage === 'index.html' || currentPage === '') {
+        updateActiveNavLink('index.html');
+    }
 });
 
-// Intersection Observer for scroll animations
-const observerOptions = {
+// Animation observer for cards
+const cardObserverOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
 };
 
-const observer = new IntersectionObserver((entries) => {
+const cardObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             entry.target.style.animationPlayState = 'running';
         }
     });
-}, observerOptions);
+}, cardObserverOptions);
 
 // Observe all cards for scroll animations
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.topic-card').forEach(card => {
         card.style.animationPlayState = 'paused';
-        observer.observe(card);
+        cardObserver.observe(card);
     });
 });
 

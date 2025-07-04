@@ -32,6 +32,35 @@ function loadTheme() {
     themeIcon.className = currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
 }
 
+// Navigation functions for visualizer page
+function handleNavigation(href) {
+    if (href.startsWith('#')) {
+        // Internal section navigation (shouldn't happen on visualizer page)
+        const sectionId = href.substring(1);
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    } else if (href.includes('#')) {
+        // Cross-page navigation with section
+        window.location.href = href;
+    } else {
+        // Regular page navigation
+        window.location.href = href;
+    }
+}
+
+function updateActiveNavLink(activeHref) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    const activeLink = document.querySelector(`[href="${activeHref}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
 // Navigation
 function navigateToSection(sectionId) {
     const section = document.getElementById(sectionId);
@@ -1487,14 +1516,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Smooth scrolling for navigation
+    // Handle navigation clicks for visualizer page
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            navigateToSection(targetId);
+            const href = this.getAttribute('href');
+            handleNavigation(href);
         });
     });
+    
+    // Set active nav link for visualizer page (if on visualizer page)
+    if (window.location.pathname.includes('visualizer')) {
+        updateActiveNavLink('visualizer.html');
+    }
     
     // Initialize with default algorithm
     const defaultAlgorithm = 'bubble-sort';
