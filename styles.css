@@ -143,6 +143,7 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -331,18 +332,19 @@ body {
     font-size: 0.9rem;
 }
 
-/* Visualizer Section */
+/* Visualizer Section - FIXED */
 .visualizer-container {
     background: var(--surface-color);
     border-radius: 1rem;
     padding: 2rem;
     box-shadow: var(--shadow);
     margin-bottom: 2rem;
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
 .visualizer-controls {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
     padding-bottom: 2rem;
@@ -353,11 +355,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    min-width: 0; /* Allow flex items to shrink */
 }
 
 .control-group label {
     font-weight: 600;
     color: var(--text-color);
+    font-size: 0.9rem;
 }
 
 .control-group select,
@@ -368,6 +372,8 @@ body {
     background: var(--background-color);
     color: var(--text-color);
     font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .control-group input[type="range"] {
@@ -376,13 +382,23 @@ body {
 
 .control-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: end;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.control-buttons .btn {
+    flex: 0 0 auto; /* Don't grow or shrink */
+    min-width: 100px; /* Minimum button width */
+    padding: 0.75rem 1rem; /* Slightly smaller padding */
+    font-size: 0.85rem;
 }
 
 .visualization-area {
     text-align: center;
     margin-bottom: 2rem;
+    overflow: hidden; /* Prevent canvas overflow */
 }
 
 #visualizationCanvas {
@@ -390,6 +406,8 @@ body {
     border-radius: 0.5rem;
     background: var(--background-color);
     margin-bottom: 1rem;
+    max-width: 100%; /* Ensure canvas doesn't overflow */
+    height: auto;
 }
 
 .visualization-info {
@@ -576,7 +594,7 @@ code {
     color: var(--text-secondary);
 }
 
-/* Responsive Design */
+/* Responsive Design - IMPROVED */
 @media (max-width: 768px) {
     .hero-section {
         grid-template-columns: 1fr;
@@ -604,10 +622,49 @@ code {
     
     .visualizer-controls {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .control-buttons {
-        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .control-buttons .btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        max-width: 120px;
+    }
+    
+    .visualization-info {
+        gap: 1rem;
+    }
+    
+    #visualizationCanvas {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .visualizer-container {
+        padding: 1rem;
+    }
+    
+    .control-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-buttons .btn {
+        width: 100%;
+        max-width: none;
+        margin-bottom: 0.5rem;
+    }
+    
+    .visualization-info {
+        flex-direction: column;
+        gap: 0.5rem;
     }
 }
 
