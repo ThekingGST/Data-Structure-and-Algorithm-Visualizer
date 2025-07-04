@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlgoViz - Learn Data Structures & Algorithms</title>
+    <title>AlgoVision - Visualize Data Structures & Algorithms</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -14,15 +14,14 @@
         <div class="nav-container">
             <div class="nav-brand">
                 <i class="fas fa-code-branch"></i>
-                <span>AlgoViz</span>
+                <span>AlgoVision</span>
             </div>
             
             <div class="nav-menu">
                 <a href="#home" class="nav-link active">Home</a>
-                <a href="#learn" class="nav-link">Learn</a>
-                <a href="#visualize" class="nav-link">Visualize</a>
-                <a href="#practice" class="nav-link">Practice</a>
-                <a href="#community" class="nav-link">Community</a>
+                <a href="#data-structures" class="nav-link">Data Structures</a>
+                <a href="#algorithms" class="nav-link">Algorithms</a>
+                <a href="#visualize" class="nav-link">Visualizer</a>
             </div>
             
             <div class="nav-actions">
@@ -42,16 +41,16 @@
         <!-- Hero Section -->
         <section id="home" class="hero-section">
             <div class="hero-content">
-                <h1>Master Data Structures & Algorithms</h1>
-                <p>Interactive visualizations, step-by-step explanations, and hands-on practice to help you understand complex concepts.</p>
+                <h1>Visualize Algorithms & Data Structures</h1>
+                <p>Interactive visualizations that bring complex algorithms and data structures to life. Watch step-by-step execution and understand how they work internally.</p>
                 <div class="hero-actions">
-                    <button class="btn btn-primary" onclick="navigateToSection('learn')">
-                        Start Learning
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <button class="btn btn-secondary" onclick="navigateToSection('visualize')">
-                        Try Visualizer
+                    <button class="btn btn-primary" onclick="navigateToSection('visualize')">
+                        Start Visualizing
                         <i class="fas fa-play"></i>
+                    </button>
+                    <button class="btn btn-secondary" onclick="navigateToSection('data-structures')">
+                        Explore Structures
+                        <i class="fas fa-sitemap"></i>
                     </button>
                 </div>
             </div>
@@ -60,100 +59,210 @@
             </div>
         </section>
 
-        <!-- Learning Paths Section -->
-        <section id="learn" class="learning-section">
+        <!-- Data Structures Section -->
+        <section id="data-structures" class="topics-section">
             <div class="container">
-                <h2>Learning Paths</h2>
-                <div class="learning-grid">
-                    <div class="learning-card" data-path="beginner">
-                        <div class="card-icon">
-                            <i class="fas fa-seedling"></i>
+                <h2>Data Structures</h2>
+                <p class="section-description">Explore how data is organized, stored, and accessed through interactive visualizations</p>
+                <div class="topics-grid">
+                    <div class="topic-card" data-topic="arrays" onclick="loadVisualization('arrays')">
+                        <div class="topic-icon">
+                            <i class="fas fa-th"></i>
                         </div>
-                        <h3>Beginner Track</h3>
-                        <p>Start with basic concepts and fundamental data structures</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 45%"></div>
+                        <h3>Arrays</h3>
+                        <p>Linear collection of elements stored in contiguous memory locations with indexed access</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Access: O(1)</span>
+                            <span class="insert-time">Insert: O(n)</span>
                         </div>
-                        <span class="progress-text">9/20 topics completed</span>
                     </div>
                     
-                    <div class="learning-card" data-path="interview">
-                        <div class="card-icon">
-                            <i class="fas fa-briefcase"></i>
+                    <div class="topic-card" data-topic="linked-lists" onclick="loadVisualization('linked-lists')">
+                        <div class="topic-icon">
+                            <i class="fas fa-link"></i>
                         </div>
-                        <h3>Interview Prep</h3>
-                        <p>Common technical interview questions and solutions</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 20%"></div>
+                        <h3>Linked Lists</h3>
+                        <p>Dynamic data structure with nodes connected through pointers, allowing flexible memory allocation</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Access: O(n)</span>
+                            <span class="insert-time">Insert: O(1)</span>
                         </div>
-                        <span class="progress-text">3/15 topics completed</span>
                     </div>
                     
-                    <div class="learning-card" data-path="advanced">
-                        <div class="card-icon">
-                            <i class="fas fa-rocket"></i>
+                    <div class="topic-card" data-topic="stacks" onclick="loadVisualization('stacks')">
+                        <div class="topic-icon">
+                            <i class="fas fa-layer-group"></i>
                         </div>
-                        <h3>Advanced Topics</h3>
-                        <p>Complex algorithms and competitive programming</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 10%"></div>
+                        <h3>Stacks</h3>
+                        <p>LIFO (Last In, First Out) data structure with push and pop operations at one end</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Push: O(1)</span>
+                            <span class="insert-time">Pop: O(1)</span>
                         </div>
-                        <span class="progress-text">2/25 topics completed</span>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="queues" onclick="loadVisualization('queues')">
+                        <div class="topic-icon">
+                            <i class="fas fa-stream"></i>
+                        </div>
+                        <h3>Queues</h3>
+                        <p>FIFO (First In, First Out) data structure with enqueue and dequeue operations</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Enqueue: O(1)</span>
+                            <span class="insert-time">Dequeue: O(1)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="trees" onclick="loadVisualization('trees')">
+                        <div class="topic-icon">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <h3>Trees</h3>
+                        <p>Hierarchical data structure with nodes connected in a parent-child relationship</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Search: O(log n)</span>
+                            <span class="insert-time">Insert: O(log n)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="graphs" onclick="loadVisualization('graphs')">
+                        <div class="topic-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <h3>Graphs</h3>
+                        <p>Network of vertices connected by edges, representing relationships between entities</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Search: O(V+E)</span>
+                            <span class="insert-time">Add Edge: O(1)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="hash-tables" onclick="loadVisualization('hash-tables')">
+                        <div class="topic-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <h3>Hash Tables</h3>
+                        <p>Key-value pairs stored using hash functions for fast data retrieval</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Access: O(1)</span>
+                            <span class="insert-time">Insert: O(1)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="heaps" onclick="loadVisualization('heaps')">
+                        <div class="topic-icon">
+                            <i class="fas fa-mountain"></i>
+                        </div>
+                        <h3>Heaps</h3>
+                        <p>Complete binary tree with heap property for priority queue operations</p>
+                        <div class="topic-meta">
+                            <span class="access-time">Extract: O(log n)</span>
+                            <span class="insert-time">Insert: O(log n)</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Data Structures Section -->
-        <section class="topics-section">
+        <!-- Algorithms Section -->
+        <section id="algorithms" class="topics-section">
             <div class="container">
-                <h2>Data Structures</h2>
+                <h2>Algorithms</h2>
+                <p class="section-description">Watch step-by-step execution of fundamental algorithms and understand their mechanics</p>
                 <div class="topics-grid">
-                    <div class="topic-card" data-topic="arrays">
+                    <div class="topic-card" data-topic="bubble-sort" onclick="loadVisualization('bubble-sort')">
                         <div class="topic-icon">
-                            <i class="fas fa-th"></i>
+                            <i class="fas fa-sort-amount-up"></i>
                         </div>
-                        <h3>Arrays</h3>
-                        <p>Linear data structure with indexed elements</p>
+                        <h3>Bubble Sort</h3>
+                        <p>Simple comparison-based sorting by repeatedly swapping adjacent elements</p>
                         <div class="topic-meta">
-                            <span class="difficulty easy">Easy</span>
-                            <span class="duration">15 min</span>
+                            <span class="time-complexity">Time: O(n²)</span>
+                            <span class="space-complexity">Space: O(1)</span>
                         </div>
                     </div>
                     
-                    <div class="topic-card" data-topic="linked-lists">
+                    <div class="topic-card" data-topic="quick-sort" onclick="loadVisualization('quick-sort')">
                         <div class="topic-icon">
-                            <i class="fas fa-link"></i>
+                            <i class="fas fa-bolt"></i>
                         </div>
-                        <h3>Linked Lists</h3>
-                        <p>Dynamic data structure with connected nodes</p>
+                        <h3>Quick Sort</h3>
+                        <p>Efficient divide-and-conquer sorting using pivot partitioning</p>
                         <div class="topic-meta">
-                            <span class="difficulty medium">Medium</span>
-                            <span class="duration">25 min</span>
+                            <span class="time-complexity">Time: O(n log n)</span>
+                            <span class="space-complexity">Space: O(log n)</span>
                         </div>
                     </div>
                     
-                    <div class="topic-card" data-topic="trees">
+                    <div class="topic-card" data-topic="merge-sort" onclick="loadVisualization('merge-sort')">
                         <div class="topic-icon">
-                            <i class="fas fa-sitemap"></i>
+                            <i class="fas fa-code-branch"></i>
                         </div>
-                        <h3>Trees</h3>
-                        <p>Hierarchical data structure with nodes</p>
+                        <h3>Merge Sort</h3>
+                        <p>Stable divide-and-conquer sorting with guaranteed O(n log n) performance</p>
                         <div class="topic-meta">
-                            <span class="difficulty hard">Hard</span>
-                            <span class="duration">40 min</span>
+                            <span class="time-complexity">Time: O(n log n)</span>
+                            <span class="space-complexity">Space: O(n)</span>
                         </div>
                     </div>
                     
-                    <div class="topic-card" data-topic="graphs">
+                    <div class="topic-card" data-topic="binary-search" onclick="loadVisualization('binary-search')">
                         <div class="topic-icon">
-                            <i class="fas fa-project-diagram"></i>
+                            <i class="fas fa-search"></i>
                         </div>
-                        <h3>Graphs</h3>
-                        <p>Network of vertices connected by edges</p>
+                        <h3>Binary Search</h3>
+                        <p>Efficient search algorithm for sorted arrays using divide-and-conquer</p>
                         <div class="topic-meta">
-                            <span class="difficulty hard">Hard</span>
-                            <span class="duration">50 min</span>
+                            <span class="time-complexity">Time: O(log n)</span>
+                            <span class="space-complexity">Space: O(1)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="dfs" onclick="loadVisualization('dfs')">
+                        <div class="topic-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <h3>Depth-First Search</h3>
+                        <p>Graph traversal exploring as far as possible along each branch</p>
+                        <div class="topic-meta">
+                            <span class="time-complexity">Time: O(V + E)</span>
+                            <span class="space-complexity">Space: O(V)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="bfs" onclick="loadVisualization('bfs')">
+                        <div class="topic-icon">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </div>
+                        <h3>Breadth-First Search</h3>
+                        <p>Graph traversal exploring neighbors before moving to next level</p>
+                        <div class="topic-meta">
+                            <span class="time-complexity">Time: O(V + E)</span>
+                            <span class="space-complexity">Space: O(V)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="dijkstra" onclick="loadVisualization('dijkstra')">
+                        <div class="topic-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h3>Dijkstra's Algorithm</h3>
+                        <p>Shortest path algorithm for weighted graphs with non-negative edges</p>
+                        <div class="topic-meta">
+                            <span class="time-complexity">Time: O((V + E) log V)</span>
+                            <span class="space-complexity">Space: O(V)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="topic-card" data-topic="insertion-sort" onclick="loadVisualization('insertion-sort')">
+                        <div class="topic-icon">
+                            <i class="fas fa-hand-point-right"></i>
+                        </div>
+                        <h3>Insertion Sort</h3>
+                        <p>Simple sorting by building sorted portion one element at a time</p>
+                        <div class="topic-meta">
+                            <span class="time-complexity">Time: O(n²)</span>
+                            <span class="space-complexity">Space: O(1)</span>
                         </div>
                     </div>
                 </div>
@@ -164,17 +273,32 @@
         <section id="visualize" class="visualizer-section">
             <div class="container">
                 <h2>Interactive Visualizer</h2>
+                <p class="section-description">Watch algorithms and data structures in action with real-time step-by-step visualization</p>
                 <div class="visualizer-container">
                     <div class="visualizer-controls">
                         <div class="control-group">
-                            <label>Algorithm:</label>
+                            <label>Algorithm/Structure:</label>
                             <select id="algorithmSelect">
-                                <option value="bubble-sort">Bubble Sort</option>
-                                <option value="quick-sort">Quick Sort</option>
-                                <option value="merge-sort">Merge Sort</option>
-                                <option value="binary-search">Binary Search</option>
-                                <option value="bfs">Breadth-First Search</option>
-                                <option value="dfs">Depth-First Search</option>
+                                <optgroup label="Sorting Algorithms">
+                                    <option value="bubble-sort">Bubble Sort</option>
+                                    <option value="quick-sort">Quick Sort</option>
+                                    <option value="merge-sort">Merge Sort</option>
+                                    <option value="insertion-sort">Insertion Sort</option>
+                                </optgroup>
+                                <optgroup label="Search Algorithms">
+                                    <option value="binary-search">Binary Search</option>
+                                    <option value="linear-search">Linear Search</option>
+                                </optgroup>
+                                <optgroup label="Graph Algorithms">
+                                    <option value="bfs">Breadth-First Search</option>
+                                    <option value="dfs">Depth-First Search</option>
+                                    <option value="dijkstra">Dijkstra's Algorithm</option>
+                                </optgroup>
+                                <optgroup label="Data Structures">
+                                    <option value="stack-operations">Stack Operations</option>
+                                    <option value="queue-operations">Queue Operations</option>
+                                    <option value="binary-tree">Binary Tree Traversal</option>
+                                </optgroup>
                             </select>
                         </div>
                         
@@ -184,7 +308,7 @@
                         </div>
                         
                         <div class="control-group">
-                            <label>Speed:</label>
+                            <label>Animation Speed:</label>
                             <input type="range" id="speedControl" min="1" max="10" value="5">
                             <span id="speedDisplay">5x</span>
                         </div>
@@ -206,16 +330,20 @@
                         <canvas id="visualizationCanvas" width="800" height="400"></canvas>
                         <div class="visualization-info">
                             <div class="info-item">
-                                <label>Comparisons:</label>
+                                <label>Operations:</label>
                                 <span id="comparisons">0</span>
                             </div>
                             <div class="info-item">
-                                <label>Swaps:</label>
+                                <label>Swaps/Moves:</label>
                                 <span id="swaps">0</span>
                             </div>
                             <div class="info-item">
                                 <label>Time Complexity:</label>
                                 <span id="timeComplexity">O(n²)</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Space Complexity:</label>
+                                <span id="spaceComplexity">O(1)</span>
                             </div>
                         </div>
                     </div>
@@ -223,11 +351,12 @@
                 
                 <div class="code-explanation">
                     <div class="code-panel">
-                        <h3>Code Implementation</h3>
+                        <h3>Implementation</h3>
                         <div class="language-tabs">
                             <button class="tab-btn active" data-lang="python">Python</button>
                             <button class="tab-btn" data-lang="javascript">JavaScript</button>
                             <button class="tab-btn" data-lang="java">Java</button>
+                            <button class="tab-btn" data-lang="cpp">C++</button>
                         </div>
                         <pre><code id="codeDisplay" class="language-python">
 def bubble_sort(arr):
@@ -249,68 +378,22 @@ print(sorted_numbers)
                         <h3>How it Works</h3>
                         <div id="algorithmExplanation">
                             <p><strong>Bubble Sort</strong> is a simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they're in the wrong order.</p>
-                            <ol>
-                                <li>Compare adjacent elements</li>
-                                <li>Swap if they're in wrong order</li>
-                                <li>Repeat until no swaps needed</li>
-                            </ol>
-                            <p><strong>Time Complexity:</strong> O(n²) in worst case, O(n) in best case</p>
-                            <p><strong>Space Complexity:</strong> O(1)</p>
+                            <div class="steps-list">
+                                <h4>Algorithm Steps:</h4>
+                                <ol>
+                                    <li>Compare adjacent elements in the array</li>
+                                    <li>Swap them if they're in the wrong order</li>
+                                    <li>Continue until no more swaps are needed</li>
+                                    <li>The largest element "bubbles up" to its correct position</li>
+                                </ol>
+                            </div>
+                            <div class="complexity-info">
+                                <h4>Complexity Analysis:</h4>
+                                <p><strong>Time Complexity:</strong> O(n²) worst/average case, O(n) best case</p>
+                                <p><strong>Space Complexity:</strong> O(1) - sorts in-place</p>
+                                <p><strong>Stability:</strong> Yes - maintains relative order of equal elements</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Practice Section -->
-        <section id="practice" class="practice-section">
-            <div class="container">
-                <h2>Practice Problems</h2>
-                <div class="practice-filters">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="easy">Easy</button>
-                    <button class="filter-btn" data-filter="medium">Medium</button>
-                    <button class="filter-btn" data-filter="hard">Hard</button>
-                </div>
-                
-                <div class="problems-grid">
-                    <div class="problem-card" data-difficulty="easy">
-                        <div class="problem-header">
-                            <h3>Two Sum</h3>
-                            <span class="difficulty easy">Easy</span>
-                        </div>
-                        <p>Given an array of integers and a target sum, return indices of two numbers that add up to the target.</p>
-                        <div class="problem-stats">
-                            <span><i class="fas fa-check-circle"></i> 1,234 solved</span>
-                            <span><i class="fas fa-thumbs-up"></i> 89% liked</span>
-                        </div>
-                        <button class="btn btn-primary">Solve Problem</button>
-                    </div>
-                    
-                    <div class="problem-card" data-difficulty="medium">
-                        <div class="problem-header">
-                            <h3>Binary Tree Traversal</h3>
-                            <span class="difficulty medium">Medium</span>
-                        </div>
-                        <p>Implement inorder, preorder, and postorder traversal of a binary tree.</p>
-                        <div class="problem-stats">
-                            <span><i class="fas fa-check-circle"></i> 892 solved</span>
-                            <span><i class="fas fa-thumbs-up"></i> 76% liked</span>
-                        </div>
-                        <button class="btn btn-primary">Solve Problem</button>
-                    </div>
-                    
-                    <div class="problem-card" data-difficulty="hard">
-                        <div class="problem-header">
-                            <h3>Graph Shortest Path</h3>
-                            <span class="difficulty hard">Hard</span>
-                        </div>
-                        <p>Find the shortest path between two nodes in a weighted graph using Dijkstra's algorithm.</p>
-                        <div class="problem-stats">
-                            <span><i class="fas fa-check-circle"></i> 456 solved</span>
-                            <span><i class="fas fa-thumbs-up"></i> 82% liked</span>
-                        </div>
-                        <button class="btn btn-primary">Solve Problem</button>
                     </div>
                 </div>
             </div>
@@ -322,28 +405,49 @@ print(sorted_numbers)
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>AlgoViz</h3>
-                    <p>Making algorithms and data structures accessible through interactive learning.</p>
+                    <h3>AlgoVision</h3>
+                    <p>Interactive visualizations for understanding algorithms and data structures through step-by-step demonstrations.</p>
+                    <div class="footer-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">20+</span>
+                            <span class="stat-label">Algorithms</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">15+</span>
+                            <span class="stat-label">Data Structures</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Learn</h4>
+                    <h4>Visualizations</h4>
                     <ul>
-                        <li><a href="#">Data Structures</a></li>
-                        <li><a href="#">Algorithms</a></li>
-                        <li><a href="#">Practice Problems</a></li>
+                        <li><a href="#data-structures">Data Structures</a></li>
+                        <li><a href="#algorithms">Sorting Algorithms</a></li>
+                        <li><a href="#algorithms">Search Algorithms</a></li>
+                        <li><a href="#algorithms">Graph Algorithms</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Community</h4>
+                    <h4>Tools</h4>
                     <ul>
-                        <li><a href="#">Forums</a></li>
-                        <li><a href="#">Discord</a></li>
-                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#visualize">Interactive Visualizer</a></li>
+                        <li><a href="#visualize">Code Examples</a></li>
+                        <li><a href="#visualize">Step-by-Step Animation</a></li>
+                        <li><a href="#visualize">Complexity Analysis</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">GitHub Repository</a></li>
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">Feedback</a></li>
+                        <li><a href="#">About</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 AlgoViz. Built with ❤️ for learning.</p>
+                <p>&copy; 2025 AlgoVision. Built for visualization and understanding.</p>
             </div>
         </div>
     </footer>
