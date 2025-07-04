@@ -1429,6 +1429,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize button states
     updateVisualizationButtons();
     
+    // Check if we need to set a specific algorithm
+    const selectedAlgorithm = localStorage.getItem('selectedAlgorithm');
+    if (selectedAlgorithm) {
+        const algorithmSelect = document.getElementById('algorithmSelect');
+        if (algorithmSelect) {
+            algorithmSelect.value = selectedAlgorithm;
+            algorithmSelect.dispatchEvent(new Event('change'));
+        }
+        // Clear the stored selection
+        localStorage.removeItem('selectedAlgorithm');
+    }
+    
     // Algorithm selector change
     const algorithmSelect = document.getElementById('algorithmSelect');
     if (algorithmSelect) {
@@ -1490,6 +1502,20 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAlgorithmExplanation(defaultAlgorithm);
     updateComplexityDisplay(defaultAlgorithm);
 });
+
+// Add this new function to your existing script.js
+function setAlgorithmAndStart(algorithm) {
+    const algorithmSelect = document.getElementById('algorithmSelect');
+    if (algorithmSelect) {
+        algorithmSelect.value = algorithm;
+        algorithmSelect.dispatchEvent(new Event('change'));
+        
+        // Small delay to ensure UI updates, then start visualization
+        setTimeout(() => {
+            startVisualization();
+        }, 100);
+    }
+}
 
 function updateCodeDisplay(algorithm, language = 'python') {
     const codeDisplay = document.getElementById('codeDisplay');
