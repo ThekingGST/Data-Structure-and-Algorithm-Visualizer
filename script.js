@@ -7,7 +7,9 @@ let visualizationState = {
     algorithm: 'bubble-sort',
     speed: 5,
     comparisons: 0,
-    swaps: 0
+    swaps: 0,
+    currentAlgorithm: null,
+    currentStep: 0
 };
 
 // Theme management
@@ -210,12 +212,17 @@ function startVisualization() {
         return;
     }
     
+    // Show algorithm title overlay
+    showAlgorithmTitle(algorithm);
+    
     visualizationState = {
         isRunning: true,
         isPaused: false,
         data: [...data],
         algorithm: algorithm,
         speed: parseInt(speed),
+        currentAlgorithm: algorithm,
+        currentStep: 0,
         comparisons: 0,
         swaps: 0
     };
@@ -309,34 +316,58 @@ function drawBars(data, highlightIndices = [], colors = {}) {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
+    const width = canvas.width / (window.devicePixelRatio || 1);
+    const height = canvas.height / (window.devicePixelRatio || 1);
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, width, height);
     
-    const barWidth = canvas.width / data.length;
-    const maxHeight = canvas.height - 40;
+    // Calculate content area (centered with padding for overlays)
+    const padding = {
+        top: 180,
+        bottom: 120,
+        left: Math.max(100, width * 0.1),
+        right: Math.max(100, width * 0.1)
+    };
+    
+    const contentWidth = width - padding.left - padding.right;
+    const contentHeight = height - padding.top - padding.bottom;
+    
+    // Fix: Better auto-sizing based on data length with maximum limits
+    const maxBarWidth = Math.min(80, contentWidth / data.length);
+    const barWidth = Math.max(20, maxBarWidth); // Minimum 20px, maximum based on available space
+    const totalBarsWidth = barWidth * data.length;
+    const startX = padding.left + Math.max(0, (contentWidth - totalBarsWidth) / 2);
+    
     const maxValue = Math.max(...data);
+    const maxBarHeight = Math.min(contentHeight * 0.7, 300); // Limit maximum bar height
     
     data.forEach((value, index) => {
-        const barHeight = (value / maxValue) * maxHeight;
-        const x = index * barWidth;
-        const y = canvas.height - barHeight;
+        const barHeight = (value / maxValue) * maxBarHeight;
+        const x = startX + (index * barWidth);
+        const y = height - padding.bottom - barHeight;
         
-        // Color based on whether it's highlighted or has custom color
+        // Color based on state
         if (colors[index]) {
             ctx.fillStyle = colors[index];
         } else if (highlightIndices.includes(index)) {
-            ctx.fillStyle = '#f56565'; // Red for comparison
+            ctx.fillStyle = '#f56565';
         } else {
-            ctx.fillStyle = '#667eea'; // Default blue
+            ctx.fillStyle = '#667eea';
         }
         
-        ctx.fillRect(x + 2, y, barWidth - 4, barHeight);
-        
-        // Draw value text
-        ctx.fillStyle = currentTheme === 'dark' ? '#f7fafc' : '#2d3748';
-        ctx.font = '12px Inter';
-        ctx.textAlign = 'center';
-        ctx.fillText(value, x + barWidth / 2, canvas.height - 5);
+        // Fix: Add bounds checking to prevent drawing outside canvas
+        if (x >= 0 && x + barWidth <= width && y >= 0) {
+            ctx.fillRect(x + 2, y, barWidth - 4, barHeight);
+            
+            // Draw value text only if there's enough space
+            if (barWidth > 25) {
+                ctx.fillStyle = currentTheme === 'dark' ? '#f7fafc' : '#2d3748';
+                const fontSize = Math.min(12, barWidth * 0.4);
+                ctx.font = `${fontSize}px Inter`;
+                ctx.textAlign = 'center';
+                ctx.fillText(value, x + barWidth / 2, height - padding.bottom + 20);
+            }
+        }
     });
 }
 
@@ -345,11 +376,35 @@ function drawGraph(nodes, edges, highlightNodes = [], highlightEdges = []) {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const width = canvas.width / (window.devicePixelRatio || 1);
+    const height = canvas.height / (window.devicePixelRatio || 1);
     
-    // Draw edges first
+    ctx.clearRect(0, 0, width, height);
+    
+    // Calculate content area with proper padding
+    const padding = {
+        top: 180,
+        bottom: 120,
+        left: 150,
+        right: 150
+    };
+    
+    const contentWidth = width - padding.left - padding.right;
+    const contentHeight = height - padding.top - padding.bottom;
+    
+    // Fix: Proper scaling to fit content area
+    const baseWidth = 400;
+    const baseHeight = 300;
+    const scaleX = contentWidth / baseWidth;
+    const scaleY = contentHeight / baseHeight;
+    const scale = Math.min(scaleX, scaleY, 1.5); // Limit maximum scale
+    
+    const offsetX = padding.left + (contentWidth - baseWidth * scale) / 2;
+    const offsetY = padding.top + (contentHeight - baseHeight * scale) / 2;
+    
+    // Draw edges
     ctx.strokeStyle = currentTheme === 'dark' ? '#a0aec0' : '#718096';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(1, 2 * scale);
     
     edges.forEach((edge, index) => {
         const from = nodes[edge.from];
@@ -357,24 +412,29 @@ function drawGraph(nodes, edges, highlightNodes = [], highlightEdges = []) {
         
         if (highlightEdges.includes(index)) {
             ctx.strokeStyle = '#f56565';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = Math.max(2, 3 * scale);
         } else {
             ctx.strokeStyle = currentTheme === 'dark' ? '#a0aec0' : '#718096';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = Math.max(1, 2 * scale);
         }
         
+        const fromX = offsetX + from.x * scale;
+        const fromY = offsetY + from.y * scale;
+        const toX = offsetX + to.x * scale;
+        const toY = offsetY + to.y * scale;
+        
         ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
         ctx.stroke();
         
         // Draw weight if exists
         if (edge.weight !== undefined) {
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
+            const midX = (fromX + toX) / 2;
+            const midY = (fromY + toY) / 2;
             
             ctx.fillStyle = currentTheme === 'dark' ? '#f7fafc' : '#2d3748';
-            ctx.font = '12px Inter';
+            ctx.font = `${Math.max(10, 14 * scale)}px Inter`;
             ctx.textAlign = 'center';
             ctx.fillText(edge.weight, midX, midY);
         }
@@ -382,6 +442,10 @@ function drawGraph(nodes, edges, highlightNodes = [], highlightEdges = []) {
     
     // Draw nodes
     nodes.forEach((node, index) => {
+        const nodeX = offsetX + node.x * scale;
+        const nodeY = offsetY + node.y * scale;
+        const nodeRadius = Math.max(15, Math.min(30, 25 * scale));
+        
         if (highlightNodes.includes(index)) {
             ctx.fillStyle = '#f56565';
         } else {
@@ -389,14 +453,14 @@ function drawGraph(nodes, edges, highlightNodes = [], highlightEdges = []) {
         }
         
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+        ctx.arc(nodeX, nodeY, nodeRadius, 0, 2 * Math.PI);
         ctx.fill();
         
         // Draw node label
         ctx.fillStyle = 'white';
-        ctx.font = '14px Inter';
+        ctx.font = `${Math.max(12, 16 * scale)}px Inter`;
         ctx.textAlign = 'center';
-        ctx.fillText(node.label || index, node.x, node.y + 5);
+        ctx.fillText(node.label || index, nodeX, nodeY + Math.max(4, 6 * scale));
     });
 }
 
@@ -407,13 +471,20 @@ function drawStack(stack, highlightIndex = -1) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Get available space considering overlays
+    const overlayPadding = 80;
+    const availableWidth = canvas.width - overlayPadding;
+    const availableHeight = canvas.height - overlayPadding;
+    const startX = overlayPadding / 2;
+    const startY = overlayPadding / 2;
+    
     const blockWidth = 100;
     const blockHeight = 40;
-    const startX = canvas.width / 2 - blockWidth / 2;
-    const startY = canvas.height - 50;
+    const centerX = startX + availableWidth / 2 - blockWidth / 2;
+    const bottomY = startY + availableHeight - 50;
     
     stack.forEach((value, index) => {
-        const y = startY - (index * blockHeight);
+        const y = bottomY - (index * blockHeight);
         
         if (index === highlightIndex) {
             ctx.fillStyle = '#f56565';
@@ -421,24 +492,24 @@ function drawStack(stack, highlightIndex = -1) {
             ctx.fillStyle = '#667eea';
         }
         
-        ctx.fillRect(startX, y, blockWidth, blockHeight);
+        ctx.fillRect(centerX, y, blockWidth, blockHeight);
         ctx.strokeStyle = currentTheme === 'dark' ? '#a0aec0' : '#718096';
-        ctx.strokeRect(startX, y, blockWidth, blockHeight);
+        ctx.strokeRect(centerX, y, blockWidth, blockHeight);
         
         // Draw value
         ctx.fillStyle = 'white';
         ctx.font = '16px Inter';
         ctx.textAlign = 'center';
-        ctx.fillText(value, startX + blockWidth / 2, y + blockHeight / 2 + 5);
+        ctx.fillText(value, centerX + blockWidth / 2, y + blockHeight / 2 + 5);
     });
     
     // Draw "TOP" pointer
     if (stack.length > 0) {
-        const topY = startY - ((stack.length - 1) * blockHeight);
+        const topY = bottomY - ((stack.length - 1) * blockHeight);
         ctx.fillStyle = currentTheme === 'dark' ? '#f7fafc' : '#2d3748';
         ctx.font = '14px Inter';
         ctx.textAlign = 'left';
-        ctx.fillText('← TOP', startX + blockWidth + 10, topY + blockHeight / 2);
+        ctx.fillText('← TOP', centerX + blockWidth + 10, topY + blockHeight / 2);
     }
 }
 
@@ -449,13 +520,20 @@ function drawQueue(queue, highlightIndex = -1) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Get available space considering overlays
+    const overlayPadding = 80;
+    const availableWidth = canvas.width - overlayPadding;
+    const availableHeight = canvas.height - overlayPadding;
+    const startX = overlayPadding / 2;
+    const startY = overlayPadding / 2;
+    
     const blockWidth = 60;
     const blockHeight = 40;
-    const startX = 50;
-    const y = canvas.height / 2 - blockHeight / 2;
+    const queueStartX = startX + 50;
+    const y = startY + availableHeight / 2 - blockHeight / 2;
     
     queue.forEach((value, index) => {
-        const x = startX + (index * blockWidth);
+        const x = queueStartX + (index * blockWidth);
         
         if (index === highlightIndex) {
             ctx.fillStyle = '#f56565';
@@ -481,11 +559,11 @@ function drawQueue(queue, highlightIndex = -1) {
         ctx.textAlign = 'center';
         
         // FRONT pointer
-        ctx.fillText('FRONT', startX + blockWidth / 2, y - 20);
-        ctx.fillText('↓', startX + blockWidth / 2, y - 5);
+        ctx.fillText('FRONT', queueStartX + blockWidth / 2, y - 20);
+        ctx.fillText('↓', queueStartX + blockWidth / 2, y - 5);
         
         // REAR pointer
-        const rearX = startX + ((queue.length - 1) * blockWidth) + blockWidth / 2;
+        const rearX = queueStartX + ((queue.length - 1) * blockWidth) + blockWidth / 2;
         ctx.fillText('REAR', rearX, y + blockHeight + 35);
         ctx.fillText('↑', rearX, y + blockHeight + 20);
     }
@@ -1022,443 +1100,274 @@ async function animateBinaryTreeTraversal() {
     
     inorderTraversal(tree);
     
-    function drawTree(highlightValue = null) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw tree nodes
+    function drawTree(node, x, y, spacing) {
+        if (!node) return;
         
-        const positions = {
-            50: { x: 400, y: 100 },
-            30: { x: 250, y: 200 },
-            70: { x: 550, y: 200 },
-            20: { x: 180, y: 300 },
-            40: { x: 320, y: 300 },
-            60: { x: 480, y: 300 },
-            80: { x: 620, y: 300 }
-        };
+        // Draw node
+        ctx.fillStyle = '#2196F3';
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, 2 * Math.PI);
+        ctx.fill();
         
-        // Draw edges
-        ctx.strokeStyle = currentTheme === 'dark' ? '#a0aec0' : '#718096';
-        ctx.lineWidth = 2;
+        // Draw value
+        ctx.fillStyle = 'white';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.value, x, y + 5);
         
-        const edges = [
-            [50, 30], [50, 70], [30, 20], [30, 40], [70, 60], [70, 80]
-        ];
-        
-        edges.forEach(([from, to]) => {
-            const fromPos = positions[from];
-            const toPos = positions[to];
-            
+        // Draw connections and child nodes
+        if (node.left) {
+            ctx.strokeStyle = '#666';
             ctx.beginPath();
-            ctx.moveTo(fromPos.x, fromPos.y);
-            ctx.lineTo(toPos.x, toPos.y);
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - spacing, y + 60);
             ctx.stroke();
-        });
+            drawTree(node.left, x - spacing, y + 60, spacing / 2);
+        }
         
-        // Draw nodes
-        Object.entries(positions).forEach(([value, pos]) => {
-            if (parseInt(value) === highlightValue) {
-                ctx.fillStyle = '#f56565';
-            } else {
-                ctx.fillStyle = '#667eea';
-            }
-            
+        if (node.right) {
+            ctx.strokeStyle = '#666';
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 25, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            ctx.fillStyle = 'white';
-            ctx.font = '16px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText(value, pos.x, pos.y + 5);
-        });
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + spacing, y + 60);
+            ctx.stroke();
+            drawTree(node.right, x + spacing, y + 60, spacing / 2);
+        }
     }
+    
+    // Initial draw
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawTree(tree, canvas.width / 2, 50, 100);
     
     // Animate traversal
-    for (let i = 0; i < traversalOrder.length && visualizationState.isRunning; i++) {
-        while (visualizationState.isPaused) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
+    for (let i = 0; i < traversalOrder.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Highlight current node (simplified)
+        ctx.fillStyle = '#FF5722';
+        ctx.font = '16px Arial';
+        ctx.fillText(`Visiting: ${traversalOrder[i]}`, 10, 30);
+    }
+}
+
+// Canvas management for full viewport
+function initFullPageCanvas() {
+    const canvas = document.getElementById('visualizationCanvas');
+    if (!canvas) return;
+    
+    // Set canvas to full viewport size
+    resizeCanvasToViewport();
+    
+    // Handle window resize
+    window.addEventListener('resize', resizeCanvasToViewport);
+}
+
+function resizeCanvasToViewport() {
+    const canvas = document.getElementById('visualizationCanvas');
+    if (!canvas) return;
+    
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Set canvas size to viewport
+    canvas.width = width;
+    canvas.height = height;
+    
+    // Handle high DPI displays
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    // Redraw current visualization if any
+    if (visualizationState.isRunning || visualizationState.data.length > 0) {
+        redrawCurrentVisualization();
+    }
+}
+
+function redrawCurrentVisualization() {
+    const canvas = document.getElementById('visualizationCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw based on current algorithm
+    if (visualizationState.currentAlgorithm) {
+        const algorithm = visualizationState.currentAlgorithm;
+        const data = visualizationState.data;
         
-        drawTree(traversalOrder[i]);
-        visualizationState.comparisons++;
-        updateVisualizationInfo();
-        
-        await new Promise(resolve => setTimeout(resolve, 1500 / visualizationState.speed));
-    }
-    
-    drawTree();
-    markVisualizationComplete();
-}
-
-// Code examples for different languages
-const codeExamples = {
-    'bubble-sort': {
-        python: `def bubble_sort(arr):
-    n = len(arr)
-    for i in range(n):
-        for j in range(0, n - i - 1):
-            if arr[j] > arr[j + 1]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-    return arr
-
-# Example usage
-numbers = [64, 34, 25, 12, 22, 11, 90]
-sorted_numbers = bubble_sort(numbers)
-print(sorted_numbers)`,
-        javascript: `function bubbleSort(arr) {
-    let n = arr.length;
-    for (let i = 0; i < n - 1; i++) {
-        for (let j = 0; j < n - i - 1; j++) {
-            if (arr[j] > arr[j + 1]) {
-                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-            }
-        }
-    }
-    return arr;
-}
-
-// Example usage
-const numbers = [64, 34, 25, 12, 22, 11, 90];
-const sortedNumbers = bubbleSort(numbers);
-console.log(sortedNumbers);`,
-        java: `public class BubbleSort {
-    public static void bubbleSort(int[] arr) {
-        int n = arr.length;
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                if (arr[j] > arr[j + 1]) {
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
-            }
-        }
-    }
-    
-    public static void main(String[] args) {
-        int[] numbers = {64, 34, 25, 12, 22, 11, 90};
-        bubbleSort(numbers);
-        System.out.println(Arrays.toString(numbers));
-    }
-}`,
-        cpp: `#include <iostream>
-#include <vector>
-using namespace std;
-
-void bubbleSort(vector<int>& arr) {
-    int n = arr.size();
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (arr[j] > arr[j + 1]) {
-                swap(arr[j], arr[j + 1]);
-            }
+        if (algorithm.includes('sort') || algorithm.includes('search')) {
+            drawBars(data, -1, -1);
+        } else if (algorithm === 'stack-operations') {
+            drawStack(data);
+        } else if (algorithm === 'queue-operations') {
+            drawQueue(data);
+        } else if (algorithm.includes('bfs') || algorithm.includes('dfs') || algorithm.includes('dijkstra')) {
+            drawGraph(data);
         }
     }
 }
 
-int main() {
-    vector<int> numbers = {64, 34, 25, 12, 22, 11, 90};
-    bubbleSort(numbers);
-    for (int num : numbers) {
-        cout << num << " ";
-    }
-    return 0;
-}`
-    },
-    'insertion-sort': {
-        python: `def insertion_sort(arr):
-    for i in range(1, len(arr)):
-        key = arr[i]
-        j = i - 1
-        while j >= 0 and arr[j] > key:
-            arr[j + 1] = arr[j]
-            j -= 1
-        arr[j + 1] = key
-    return arr
-
-# Example usage
-numbers = [64, 34, 25, 12, 22, 11, 90]
-sorted_numbers = insertion_sort(numbers)
-print(sorted_numbers)`,
-        javascript: `function insertionSort(arr) {
-    for (let i = 1; i < arr.length; i++) {
-        let key = arr[i];
-        let j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-    return arr;
-}
-
-// Example usage
-const numbers = [64, 34, 25, 12, 22, 11, 90];
-const sortedNumbers = insertionSort(numbers);
-console.log(sortedNumbers);`,
-        java: `public static void insertionSort(int[] arr) {
-    for (int i = 1; i < arr.length; i++) {
-        int key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-}`,
-        cpp: `void insertionSort(vector<int>& arr) {
-    for (int i = 1; i < arr.size(); i++) {
-        int key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-}`
-    },
-    'quick-sort': {
-        python: `def quick_sort(arr, low, high):
-    if low < high:
-        pi = partition(arr, low, high)
-        quick_sort(arr, low, pi - 1)
-        quick_sort(arr, pi + 1, high)
-
-def partition(arr, low, high):
-    pivot = arr[high]
-    i = low - 1
-    for j in range(low, high):
-        if arr[j] < pivot:
-            i += 1
-            arr[i], arr[j] = arr[j], arr[i]
-    arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    return i + 1`,
-        javascript: `function quickSort(arr, low = 0, high = arr.length - 1) {
-    if (low < high) {
-        const pi = partition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
-    }
-    return arr;
-}
-
-function partition(arr, low, high) {
-    const pivot = arr[high];
-    let i = low - 1;
-    for (let j = low; j < high; j++) {
-        if (arr[j] < pivot) {
-            i++;
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-    }
-    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-    return i + 1;
-}`,
-        java: `public static void quickSort(int[] arr, int low, int high) {
-    if (low < high) {
-        int pi = partition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
+// Overlay management
+function toggleOverlay(panelId) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    
+    const isMinimized = panel.classList.contains('minimized');
+    const minimizeBtn = panel.querySelector('.minimize-btn i');
+    
+    if (isMinimized) {
+        panel.classList.remove('minimized');
+        minimizeBtn.className = 'fas fa-minus';
+    } else {
+        panel.classList.add('minimized');
+        minimizeBtn.className = 'fas fa-plus';
     }
 }
 
-public static int partition(int[] arr, int low, int high) {
-    int pivot = arr[high];
-    int i = low - 1;
-    for (int j = low; j < high; j++) {
-        if (arr[j] < pivot) {
-            i++;
-            int temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
-        }
+// Fixed implementation modal management
+function showImplementationDetails() {
+    const modal = document.getElementById('implementationModal');
+    if (!modal) {
+        console.error('Implementation modal not found');
+        return;
     }
-    int temp = arr[i + 1];
-    arr[i + 1] = arr[high];
-    arr[high] = temp;
-    return i + 1;
-}`,
-        cpp: `void quickSort(vector<int>& arr, int low, int high) {
-    if (low < high) {
-        int pi = partition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
+    
+    const algorithm = document.getElementById('algorithmSelect').value;
+    
+    // Update modal content
+    updateModalContent(algorithm);
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Add event listener for outside clicks
+    setTimeout(() => {
+        modal.addEventListener('click', handleModalOutsideClick);
+    }, 100);
+}
+
+function handleModalOutsideClick(e) {
+    const modal = document.getElementById('implementationModal');
+    if (e.target === modal) {
+        closeImplementationModal();
     }
 }
 
-int partition(vector<int>& arr, int low, int high) {
-    int pivot = arr[high];
-    int i = low - 1;
-    for (int j = low; j < high; j++) {
-        if (arr[j] < pivot) {
-            i++;
-            swap(arr[i], arr[j]);
-        }
-    }
-    swap(arr[i + 1], arr[high]);
-    return i + 1;
-}`
-    },
-    'binary-search': {
-        python: `def binary_search(arr, target):
-    left, right = 0, len(arr) - 1
+function closeImplementationModal() {
+    const modal = document.getElementById('implementationModal');
+    if (!modal) return;
     
-    while left <= right:
-        mid = (left + right) // 2
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
     
-    return -1  # Not found
-
-# Example usage
-sorted_array = [11, 12, 22, 25, 34, 64, 90]
-result = binary_search(sorted_array, 25)
-print(f"Element found at index: {result}")`,
-        javascript: `function binarySearch(arr, target) {
-    let left = 0;
-    let right = arr.length - 1;
-    
-    while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        if (arr[mid] === target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1; // Not found
+    // Remove event listener
+    modal.removeEventListener('click', handleModalOutsideClick);
 }
 
-// Example usage
-const sortedArray = [11, 12, 22, 25, 34, 64, 90];
-const result = binarySearch(sortedArray, 25);
-console.log(\`Element found at index: \${result}\`);`,
-        java: `public static int binarySearch(int[] arr, int target) {
-    int left = 0;
-    int right = arr.length - 1;
+function updateModalContent(algorithm) {
+    // Update code display
+    const activeLanguage = document.querySelector('.tab-btn.active')?.dataset.lang || 'python';
+    updateCodeDisplay(algorithm, activeLanguage);
     
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
+    // Update explanation
+    updateAlgorithmExplanation(algorithm);
     
-    return -1; // Not found
-}`,
-        cpp: `int binarySearch(vector<int>& arr, int target) {
-    int left = 0;
-    int right = arr.size() - 1;
-    
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1; // Not found
-}`
-    }
-};
+    // Update complexity analysis
+    updateComplexityAnalysis(algorithm);
+}
 
-const algorithmExplanations = {
-    'bubble-sort': {
-        title: 'Bubble Sort',
-        description: 'Bubble Sort is a simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they\'re in the wrong order.',
-        steps: [
-            'Compare adjacent elements in the array',
-            'Swap them if they\'re in the wrong order',
-            'Continue until no more swaps are needed',
-            'The largest element "bubbles up" to its correct position'
-        ],
-        timeComplexity: 'O(n²) worst/average case, O(n) best case',
-        spaceComplexity: 'O(1) - sorts in-place',
-        stability: 'Yes - maintains relative order of equal elements'
-    },
-    'insertion-sort': {
-        title: 'Insertion Sort',
-        description: 'Insertion Sort builds the final sorted array one item at a time by repeatedly taking elements from the unsorted portion and inserting them into their correct position.',
-        steps: [
-            'Start with the second element (index 1)',
-            'Compare it with previous elements',
-            'Shift larger elements to the right',
-            'Insert the current element in its correct position'
-        ],
-        timeComplexity: 'O(n²) worst/average case, O(n) best case',
-        spaceComplexity: 'O(1) - sorts in-place',
-        stability: 'Yes - maintains relative order of equal elements'
-    },
-    'quick-sort': {
-        title: 'Quick Sort',
-        description: 'Quick Sort is an efficient divide-and-conquer algorithm that works by selecting a pivot element and partitioning the array around it.',
-        steps: [
-            'Choose a pivot element from the array',
-            'Partition the array so elements smaller than pivot come before it',
-            'Elements greater than pivot come after it',
-            'Recursively apply the same process to sub-arrays'
-        ],
-        timeComplexity: 'O(n log n) average case, O(n²) worst case',
-        spaceComplexity: 'O(log n) average case',
-        stability: 'No - may change relative order of equal elements'
-    },
-    'binary-search': {
-        title: 'Binary Search',
-        description: 'Binary Search is an efficient algorithm for finding an item from a sorted list by repeatedly dividing the search interval in half.',
-        steps: [
-            'Start with the middle element of the sorted array',
-            'If target equals middle element, return its position',
-            'If target is less than middle, search the left half',
-            'If target is greater than middle, search the right half',
-            'Repeat until target is found or search space is empty'
-        ],
-        timeComplexity: 'O(log n)',
-        spaceComplexity: 'O(1) iterative, O(log n) recursive',
-        stability: 'N/A - search algorithm'
-    }
-};
+function updateComplexityAnalysis(algorithm) {
+    const complexityDiv = document.getElementById('complexityAnalysis');
+    if (!complexityDiv) return;
+    
+    const explanation = algorithmExplanations[algorithm] || algorithmExplanations['bubble-sort'];
+    const complexity = algorithmComplexities[algorithm] || algorithmComplexities['bubble-sort'];
+    
+    complexityDiv.innerHTML = `
+        <div class="complexity-overview">
+            <h3>${explanation.title} - Complexity Analysis</h3>
+            <div class="complexity-grid">
+                <div class="complexity-item">
+                    <h4>Time Complexity</h4>
+                    <div class="complexity-value">${complexity.time}</div>
+                    <p>${explanation.timeComplexity}</p>
+                </div>
+                <div class="complexity-item">
+                    <h4>Space Complexity</h4>
+                    <div class="complexity-value">${complexity.space}</div>
+                    <p>${explanation.spaceComplexity}</p>
+                </div>
+                <div class="complexity-item">
+                    <h4>Stability</h4>
+                    <div class="complexity-value">${explanation.stability.includes('Yes') ? 'Stable' : 'Unstable'}</div>
+                    <p>${explanation.stability}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
-const algorithmComplexities = {
-    'bubble-sort': { time: 'O(n²)', space: 'O(1)' },
-    'insertion-sort': { time: 'O(n²)', space: 'O(1)' },
-    'quick-sort': { time: 'O(n log n)', space: 'O(log n)' },
-    'merge-sort': { time: 'O(n log n)', space: 'O(n)' },
-    'binary-search': { time: 'O(log n)', space: 'O(1)' },
-    'linear-search': { time: 'O(n)', space: 'O(1)' },
-    'bfs': { time: 'O(V + E)', space: 'O(V)' },
-    'dfs': { time: 'O(V + E)', space: 'O(V)' },
-    'dijkstra': { time: 'O((V + E) log V)', space: 'O(V)' },
-    'stack-operations': { time: 'O(1)', space: 'O(n)' },
-    'queue-operations': { time: 'O(1)', space: 'O(n)' },
-    'binary-tree': { time: 'O(n)', space: 'O(h)' }
-};
+// Algorithm title management
+function showAlgorithmTitle(algorithm) {
+    const titleOverlay = document.getElementById('algorithmTitle');
+    const titleText = document.getElementById('algorithmTitleText');
+    
+    const titles = {
+        'bubble-sort': 'Bubble Sort Visualization',
+        'quick-sort': 'Quick Sort Visualization',
+        'merge-sort': 'Merge Sort Visualization',
+        'insertion-sort': 'Insertion Sort Visualization',
+        'binary-search': 'Binary Search Visualization',
+        'linear-search': 'Linear Search Visualization',
+        'bfs': 'Breadth-First Search',
+        'dfs': 'Depth-First Search',
+        'dijkstra': 'Dijkstra\'s Algorithm',
+        'stack-operations': 'Stack Operations',
+        'queue-operations': 'Queue Operations',
+        'binary-tree': 'Binary Tree Traversal'
+    };
+    
+    titleText.textContent = titles[algorithm] || 'Algorithm Visualization';
+    titleOverlay.classList.add('visible');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        titleOverlay.classList.remove('visible');
+    }, 3000);
+}
 
-// Event listeners
+// Updated DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
-    initHeroAnimation();
+    
+    // Initialize full page canvas
+    initFullPageCanvas();
     
     // Initialize button states
     updateVisualizationButtons();
     
-    // Check if we need to set a specific algorithm
+    // Handle navigation clicks for visualizer page
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            handleNavigation(href);
+        });
+    });
+    
+    // Set active nav link for visualizer page
+    if (window.location.pathname.includes('visualizer')) {
+        updateActiveNavLink('visualizer.html');
+    }
+    
+    // Check for selected algorithm from localStorage
     const selectedAlgorithm = localStorage.getItem('selectedAlgorithm');
     if (selectedAlgorithm) {
         const algorithmSelect = document.getElementById('algorithmSelect');
@@ -1466,7 +1375,6 @@ document.addEventListener('DOMContentLoaded', function() {
             algorithmSelect.value = selectedAlgorithm;
             algorithmSelect.dispatchEvent(new Event('change'));
         }
-        // Clear the stored selection
         localStorage.removeItem('selectedAlgorithm');
     }
     
@@ -1494,7 +1402,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Language tabs
+    // Modal tab functionality
+    document.querySelectorAll('.modal-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Update active tab
+            document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update active content
+            document.querySelectorAll('.modal-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const targetTab = document.getElementById(tabName + 'Tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+        });
+    });
+    
+    // Language tab functionality in modal
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1506,117 +1435,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Topic cards
-    document.querySelectorAll('.topic-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const topic = this.dataset.topic;
-            if (topic) {
-                loadVisualization(topic);
-            }
-        });
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImplementationModal();
+        }
     });
-    
-    // Handle navigation clicks for visualizer page
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const href = this.getAttribute('href');
-            handleNavigation(href);
-        });
-    });
-    
-    // Set active nav link for visualizer page (if on visualizer page)
-    if (window.location.pathname.includes('visualizer')) {
-        updateActiveNavLink('visualizer.html');
-    }
     
     // Initialize with default algorithm
     const defaultAlgorithm = 'bubble-sort';
     updateCodeDisplay(defaultAlgorithm);
     updateAlgorithmExplanation(defaultAlgorithm);
     updateComplexityDisplay(defaultAlgorithm);
-});
-
-// Add this new function to your existing script.js
-function setAlgorithmAndStart(algorithm) {
-    const algorithmSelect = document.getElementById('algorithmSelect');
-    if (algorithmSelect) {
-        algorithmSelect.value = algorithm;
-        algorithmSelect.dispatchEvent(new Event('change'));
-        
-        // Small delay to ensure UI updates, then start visualization
-        setTimeout(() => {
-            startVisualization();
-        }, 100);
+    
+    // Fix: Ensure implementation button is properly initialized
+    const detailsButton = document.querySelector('#detailsButton .btn');
+    if (detailsButton) {
+        detailsButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showImplementationDetails();
+        });
     }
-}
-
-function updateCodeDisplay(algorithm, language = 'python') {
-    const codeDisplay = document.getElementById('codeDisplay');
-    if (!codeDisplay) return;
-    
-    const code = codeExamples[algorithm]?.[language] || codeExamples['bubble-sort'][language];
-    codeDisplay.textContent = code;
-    codeDisplay.className = `language-${language}`;
-}
-
-function updateAlgorithmExplanation(algorithm) {
-    const explanation = algorithmExplanations[algorithm] || algorithmExplanations['bubble-sort'];
-    const explanationDiv = document.getElementById('algorithmExplanation');
-    
-    if (!explanationDiv) return;
-    
-    explanationDiv.innerHTML = `
-        <p><strong>${explanation.title}</strong> ${explanation.description}</p>
-        <div class="steps-list">
-            <h4>Algorithm Steps:</h4>
-            <ol>
-                ${explanation.steps.map(step => `<li>${step}</li>`).join('')}
-            </ol>
-        </div>
-        <div class="complexity-info">
-            <h4>Complexity Analysis:</h4>
-            <p><strong>Time Complexity:</strong> ${explanation.timeComplexity}</p>
-            <p><strong>Space Complexity:</strong> ${explanation.spaceComplexity}</p>
-            <p><strong>Stability:</strong> ${explanation.stability}</p>
-        </div>
-    `;
-}
-
-function updateComplexityDisplay(algorithm) {
-    const complexities = algorithmComplexities[algorithm] || algorithmComplexities['bubble-sort'];
-    
-    const timeComplexityEl = document.getElementById('timeComplexity');
-    const spaceComplexityEl = document.getElementById('spaceComplexity');
-    
-    if (timeComplexityEl) timeComplexityEl.textContent = complexities.time;
-    if (spaceComplexityEl) spaceComplexityEl.textContent = complexities.space;
-}
-
-// Intersection Observer for scroll animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.animationPlayState = 'running';
-        }
-    });
-}, observerOptions);
-
-// Observe all cards for scroll animations
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.topic-card').forEach(card => {
-        card.style.animationPlayState = 'paused';
-        observer.observe(card);
-    });
 });
 
-// Keyboard shortcuts
+// Close modal on escape key
 document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImplementationModal();
+    }
+    
     // Space to toggle visualization
     if (e.code === 'Space' && visualizationState.isRunning) {
         e.preventDefault();
@@ -1627,12 +1475,6 @@ document.addEventListener('keydown', function(e) {
     if (e.code === 'Escape' && visualizationState.isRunning) {
         e.preventDefault();
         resetVisualization();
-    }
-    
-    // Ctrl/Cmd + T to toggle theme
-    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyT') {
-        e.preventDefault();
-        toggleTheme();
     }
 });
 
@@ -1652,3 +1494,23 @@ function handleCanvasResize() {
 
 window.addEventListener('resize', handleCanvasResize);
 document.addEventListener('DOMContentLoaded', handleCanvasResize);
+
+// Additional function to debug button issues
+function debugImplementationButton() {
+    const button = document.querySelector('#detailsButton .btn');
+    const modal = document.getElementById('implementationModal');
+    
+    console.log('Implementation button:', button);
+    console.log('Implementation modal:', modal);
+    
+    if (button && modal) {
+        console.log('Both elements found - button should work');
+    } else {
+        console.error('Missing elements:', { button: !!button, modal: !!modal });
+    }
+}
+
+// Call debug function after DOM is loaded (remove this in production)
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(debugImplementationButton, 1000);
+});
